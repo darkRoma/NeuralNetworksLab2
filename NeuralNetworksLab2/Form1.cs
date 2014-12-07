@@ -29,7 +29,7 @@ namespace NeuralNetworksLab2
             InitializeComponent();
 
             sigma = 10;
-            r = 31;
+            r = 28;
             b = 2.67f;
             step = 0.1f;
             count = 2000;
@@ -37,6 +37,8 @@ namespace NeuralNetworksLab2
             x0 = 0.8;
             y0 = -0.5;
             z0 = 0.1;
+
+            p = 25;
 
             generator = new LorenzGenerator(sigma, r, b, step, count, new Vector<double>(x0, y0, z0));
             network = new NeuralNetwork();
@@ -82,7 +84,7 @@ namespace NeuralNetworksLab2
             }
 
             n = generator.resultValues.x.Count / 3;
-            p = 25;
+            
 
 			for (int i = p+1; i < n; i++)
 			{
