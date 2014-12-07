@@ -19,9 +19,9 @@ namespace NeuralNetworksLab2
     }
     class LorenzFunction
     {
-        private double sigma;
-        private double r;
-        private double b;
+        private double sigma { get; set; }
+        private double r { get; set; }
+        private double b { get; set; }
 
         public LorenzFunction(double sigma, double r, double b)
         {
@@ -59,7 +59,7 @@ namespace NeuralNetworksLab2
         
         private LorenzFunction function;
 
-        public LorenzGenerator(double sigma, double r, double b, double step, int count)
+        public LorenzGenerator(double sigma, double r, double b, double step, int count, Vector<double> Y0)
 		{
 			this.sigma = sigma;
 			this.r = r;
@@ -69,6 +69,8 @@ namespace NeuralNetworksLab2
 
             this.step = step;
             this.count = count;
+
+            this.Y0 = Y0;
 		}
 
         public void generate()
