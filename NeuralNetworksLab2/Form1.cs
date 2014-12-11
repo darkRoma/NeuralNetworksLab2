@@ -32,7 +32,7 @@ namespace NeuralNetworksLab2
             r = 28;
             b = 2.67f;
             step = 0.1f;
-            count = 2000;
+            count = 3500;
 
             x0 = 0.8;
             y0 = -0.5;

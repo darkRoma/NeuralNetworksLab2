@@ -74,11 +74,14 @@ namespace NeuralNetworksLab2
             public double[][][] weights;
             public double[][] neuronErrors;
 
+            public double[] gammas;
+
             public Net(int countOfLayers)
             {
                 layers = new Layer[countOfLayers];
 
                 layers[0] = new Layer(25);
+                //layers[1] = new Layer(25);
                 layers[1] = new Layer(8);
                 layers[2] = new Layer(1);
 
@@ -91,8 +94,6 @@ namespace NeuralNetworksLab2
                          weights[i][j] = new double[layers[i-1].neuronsOnLayer.Length];
                   }
 
-                
-
                 Random random = new Random();
                 for (int i = 1; i < countOfLayers; i++)
                     for (int j = 0; j < layers[i].neuronsOnLayer.Length; j++)
@@ -103,6 +104,12 @@ namespace NeuralNetworksLab2
                 neuronErrors = new double[countOfLayers][];
                 for (int i = 0; i < countOfLayers; i++)
                     neuronErrors[i] = new double[layers[i].neuronsOnLayer.Length];
+
+                gammas = new double[layers[0].neuronsOnLayer.Count()];
+                for (int i = 0; i < gammas.Count(); i++)
+                {
+                    gammas[i] = 1.8 * random.NextDouble() + 0.1f;
+                }
             }
         }
 
@@ -139,10 +146,28 @@ namespace NeuralNetworksLab2
             questionList = qlist;
         }
 
+        double gammaFunction(double m, double n)
+        {
+            return m * Math.Pow(1 - m, n - 1);
+        }
+
+        double gammaFunctionDerivative(double m, double n)
+        {
+            return Math.Pow(1 - m, n - 1) - m * (n - 1) * Math.Pow(1 - m, n - 2);
+        }
+
         void initializeOutputs(List<double> qList)
         {
+            //for (int i = 0; i < net.layers[0].neuronsOnLayer.Length; i++)
+              //  net.layers[0].neuronsOnLayer[i].output = qList.ElementAt(i);
+
             for (int i = 0; i < net.layers[0].neuronsOnLayer.Length; i++)
-                net.layers[0].neuronsOnLayer[i].output = qList.ElementAt(i);
+            {
+                double output=0;
+                for (int k = qList.Count - 1; k > 0; k--)
+                    output += gammaFunction(net.gammas[k - 1], qList.Count - 1) * qList[qList.Count - k - 1];
+                net.layers[0].neuronsOnLayer[i].output = output;
+            }
         }
 
         double getAnswerFromTeacherForLearningList(int number)
@@ -205,6 +230,12 @@ namespace NeuralNetworksLab2
 
         }
 
+        public void init(List<double> qList)
+        {
+            for (int i = 0; i < net.layers[0].neuronsOnLayer.Length; i++)
+              net.layers[0].neuronsOnLayer[i].output = qList.ElementAt(i);
+        }
+
         void calculateNewWeights()
         {
             for (int l = 1; l < countOfLayersInNet; l++)
@@ -215,6 +246,10 @@ namespace NeuralNetworksLab2
                         net.weights[l][i][j] -= learningRate * net.neuronErrors[l][i] * net.layers[l - 1].neuronsOnLayer[j].output;                   
                 }
             }
+
+            for (int i = 0; i < net.gammas.Count(); i++)
+                net.gammas[i] -= learningRate * net.neuronErrors[0][i] * gammaFunctionDerivative(net.gammas[i], i + 2);
+
         }
 
         public void backwardPass()
@@ -237,7 +272,7 @@ namespace NeuralNetworksLab2
                 // Training network with learningList
                 for (currentLearningNumber = 0; currentLearningNumber < maxLearningVectorCount; currentLearningNumber++)
                 {
-                    initializeOutputs(learningList[currentLearningNumber]);
+                    init(learningList[currentLearningNumber]);
 
                     forwardPass(true, learningList[currentLearningNumber].ElementAt(net.layers[0].neuronsOnLayer.Count()));
 
@@ -255,7 +290,7 @@ namespace NeuralNetworksLab2
 
                 for (int currentTestingNumber = 0; currentTestingNumber < maxTestingVectorCount; currentTestingNumber++)
                 {
-                    initializeOutputs(testingList[currentTestingNumber]);
+                    init(testingList[currentTestingNumber]);
 
                     forwardPass(true, testingList[currentTestingNumber].ElementAt(net.layers[0].neuronsOnLayer.Count()));
                 }
@@ -274,7 +309,7 @@ namespace NeuralNetworksLab2
 
         public double askQuestion(List<double> question)
         {   
-            initializeOutputs(question);
+            init(question);
             forwardPass(false, 0);
             double answer = net.layers[countOfLayersInNet - 1].neuronsOnLayer[net.layers[countOfLayersInNet-1].neuronsOnLayer.Length-1].output;
             return answer;
